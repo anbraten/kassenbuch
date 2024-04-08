@@ -3,6 +3,11 @@ export default defineNuxtConfig({
   modules: ['@nuxt/ui'],
   devtools: { enabled: true },
   ssr: false,
+  app: {
+    head: {
+      title: 'Kassenbuch',
+    },
+  },
   ui: {
     icons: ['heroicons', 'ic'],
   },

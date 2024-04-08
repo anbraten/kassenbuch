@@ -2,27 +2,25 @@
   <div v-if="book" class="w-full">
     <div class="flex mb-4">
       <div class="flex flex-col gap-2">
-        <h1 class="text-2xl">Kassenbuch: {{ book.name }}</h1>
-        <div class="flex gap-2">
-          <span>Jahr</span>
-          <span>{{ selectedYear }}</span>
-        </div>
-        <div class="flex gap-2">
-          <span>Anfangssaldo {{ months[selectedMonth] }}</span>
+        <h1 class="text-2xl">{{ book.name }} - {{ months[selectedMonth] }} {{ selectedYear }}</h1>
+
+        <div class="flex gap-1">
+          <span>Anfangssaldo:</span>
           <span>{{ startAmountMonth !== undefined ? formatAmount(startAmountMonth) : '---' }}</span>
         </div>
-        <div class="flex gap-2">
-          <span>Endsaldo {{ months[selectedMonth] }}</span>
+
+        <div class="flex gap-1">
+          <span>Endsaldo:</span>
           <span>{{ endAmountMonth !== undefined ? formatAmount(endAmountMonth) : '---' }}</span>
         </div>
       </div>
 
       <div class="flex ml-auto items-start print:hidden">
-        <UButton icon="i-heroicons-printer" label="Drucken" @click="print" />
+        <UButton icon="i-heroicons-printer" @click="print" />
       </div>
     </div>
 
-    <UTabs :items="monthTabs" v-model="selectedMonth" class="w-full" />
+    <UTabs :items="monthTabs" v-model="selectedMonth" class="w-full print:hidden" />
 
     <div class="flex flex-col w-full">
       <div class="flex gap-2 w-full border-b-2 border-stone-200">
@@ -41,12 +39,18 @@
           <span>{{ i + 1 }}</span>
         </div>
         <div class="w-2/12 flex items-center">
-          <span v-if="selectedEntry?.id !== entry.id" class="p-2">{{ formatDate(entry.date) }}</span>
+          <span
+            class="p-2 print:block"
+            :class="{
+              hidden: selectedEntry && selectedEntry.id === entry.id,
+            }"
+            >{{ formatDate(entry.date) }}</span
+          >
           <UInput
-            v-else-if="selectedEntry"
+            v-if="selectedEntry && selectedEntry.id === entry.id"
             v-model="selectedEntry.date"
             type="number"
-            class="w-full"
+            class="w-full print:hidden"
             required
             placeholder="Tag"
           >
@@ -64,12 +68,18 @@
             'text-green-500': entry.amount >= 0,
           }"
         >
-          <span v-if="selectedEntry?.id !== entry.id" class="p-2">{{ formatAmount(entry.amount) }}</span>
+          <span
+            class="p-2 print:block"
+            :class="{
+              hidden: selectedEntry && selectedEntry.id === entry.id,
+            }"
+            >{{ formatAmount(entry.amount) }}</span
+          >
           <UInput
-            v-else-if="selectedEntry"
+            v-if="selectedEntry && selectedEntry.id === entry.id"
             v-model="selectedEntry.amount"
             type="number"
-            class="w-full"
+            class="w-full print:hidden"
             required
             placeholder="Betrag"
           >
@@ -79,11 +89,17 @@
           </UInput>
         </div>
         <div class="w-4/12 flex items-center">
-          <span v-if="selectedEntry?.id !== entry.id" class="p-2">{{ entry.description }}</span>
+          <span
+            class="p-2 print:block"
+            :class="{
+              hidden: selectedEntry && selectedEntry.id === entry.id,
+            }"
+            >{{ entry.description }}</span
+          >
           <UInput
-            v-else-if="selectedEntry"
+            v-if="selectedEntry && selectedEntry.id === entry.id"
             v-model="selectedEntry.description"
-            class="w-full"
+            class="w-full print:hidden"
             required
             placeholder="Beschreibung"
           />
@@ -157,6 +173,10 @@ const selectedEntry = computed({
       selectedEntryId.value = undefined;
     }
   },
+});
+
+watch([selectedMonth, selectedYear], () => {
+  selectedEntry.value = undefined;
 });
 
 const monthTabs = computed(() => months.map((month, i) => ({ label: month, value: i })));
