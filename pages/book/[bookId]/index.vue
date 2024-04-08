@@ -24,9 +24,15 @@
 
     <div class="flex flex-col w-full">
       <div class="flex gap-2 w-full border-b-2 border-stone-200 dark:border-gray-800">
-        <div class="flex w-1/12 p-2 items-center">lfd. Nr.</div>
+        <div class="w-1/12 p-2">lfd. Nr.</div>
         <div class="w-2/12 p-2">Datum</div>
-        <div class="w-2/12 p-2">Betrag</div>
+        <div class="w-2/12 p-2 flex flex-col">
+          <span class="mx-auto">Betrag</span>
+          <div class="flex gap-2 justify-between">
+            <span class="text-green-500">Einnahmen</span>
+            <span class="text-red-500">Ausgaben</span>
+          </div>
+        </div>
         <div class="w-4/12 p-2">Beschreibung</div>
         <div class="w-1/12 p-2" />
       </div>
@@ -248,7 +254,6 @@ async function addEntry() {
     ...newItem,
     date: new Date(selectedYear.value, selectedMonth.value, newItem.day),
     bookId,
-    type: 'expense',
   });
   newItem.day = lastDay.value;
   newItem.amount = 0;

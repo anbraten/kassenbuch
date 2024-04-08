@@ -10,7 +10,6 @@ export type Entry = {
   id?: number;
   bookId: number;
   date: Date;
-  type: 'income' | 'expense';
   amount: number;
   description: string;
 };
@@ -28,11 +27,7 @@ class Database extends Dexie {
     //
     this.version(1).stores({
       books: '++id, name, startAmount',
-    });
-
-    this.version(2).stores({
-      books: '++id, name, startAmount',
-      entries: '++id, bookId, date, type, amount, description',
+      entries: '++id, bookId, date, amount, description',
     });
   }
 }
