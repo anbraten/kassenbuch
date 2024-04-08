@@ -23,7 +23,7 @@
     <UTabs :items="monthTabs" v-model="selectedMonth" class="w-full print:hidden" />
 
     <div class="flex flex-col w-full">
-      <div class="flex gap-2 w-full border-b-2 border-stone-200">
+      <div class="flex gap-2 w-full border-b-2 border-stone-200 dark:border-gray-800">
         <div class="flex w-1/12 p-2 items-center">lfd. Nr.</div>
         <div class="w-2/12 p-2">Datum</div>
         <div class="w-2/12 p-2">Betrag</div>
@@ -31,7 +31,15 @@
         <div class="w-1/12 p-2" />
       </div>
 
-      <div v-for="(entry, i) in entries" class="flex gap-2 w-full border-b" @click="selectedEntryId = entry.id">
+      <form
+        v-for="(entry, i) in entries"
+        :key="entry.id"
+        class="flex gap-2 w-full border-b dark:border-gray-800"
+        :data-id="entry.id"
+        :ref="(el) => selectedEntry?.id === entry.id && (entryRef = el as HTMLElement)"
+        @click="selectEntry(entry)"
+        @submit.prevent="saveEntry"
+      >
         <div class="w-1/12 p-2 flex items-center gap-2">
           <!-- <div class="print:hidden flex items-center cursor-grab handle">
             <UIcon name="i-ic-baseline-drag-indicator" />
@@ -42,12 +50,12 @@
           <span
             class="p-2 print:block"
             :class="{
-              hidden: selectedEntry && selectedEntry.id === entry.id,
+              hidden: selectedEntry.id === entry.id,
             }"
             >{{ formatDate(entry.date) }}</span
           >
           <UInput
-            v-if="selectedEntry && selectedEntry.id === entry.id"
+            v-if="selectedEntry.id === entry.id"
             v-model="selectedEntry.date"
             type="number"
             class="w-full print:hidden"
@@ -71,12 +79,12 @@
           <span
             class="p-2 print:block"
             :class="{
-              hidden: selectedEntry && selectedEntry.id === entry.id,
+              hidden: selectedEntry.id === entry.id,
             }"
             >{{ formatAmount(entry.amount) }}</span
           >
           <UInput
-            v-if="selectedEntry && selectedEntry.id === entry.id"
+            v-if="selectedEntry.id === entry.id"
             v-model="selectedEntry.amount"
             type="number"
             class="w-full print:hidden"
@@ -92,27 +100,39 @@
           <span
             class="p-2 print:block"
             :class="{
-              hidden: selectedEntry && selectedEntry.id === entry.id,
+              hidden: selectedEntry.id === entry.id,
             }"
             >{{ entry.description }}</span
           >
-          <UInput
-            v-if="selectedEntry && selectedEntry.id === entry.id"
+          <UInputMenu
+            v-if="selectedEntry.id === entry.id"
             v-model="selectedEntry.description"
+            v-model:query="descriptionQuery"
+            :options="descriptionSuggestions"
             class="w-full print:hidden"
             required
             placeholder="Beschreibung"
           />
         </div>
-        <div class="w-1/12 p-2" />
-      </div>
+        <div class="flex items-center ml-auto w-1/12 print:hidden justify-end">
+          <UButton
+            v-if="selectedEntry.id === entry.id"
+            icon="i-heroicons-trash"
+            color="red"
+            @click="deleteEntry(entry)"
+          />
+        </div>
+      </form>
 
       <div v-if="entries?.length === 0" class="flex justify-center">
         <div class="flex p-2">Keine Einträge vorhanden.</div>
       </div>
 
       <form class="flex gap-2 w-full mt-2 print:hidden" @submit.prevent="addEntry">
-        <div class="w-1/12" />
+        <div class="w-1/12 p-2 flex items-center gap-2">
+          <span>{{ (entries?.length ?? 0) + 1 }}</span>
+        </div>
+
         <div class="w-2/12">
           <UInput v-model="newItem.day" type="number" required placeholder="Tag">
             <template #trailing>
@@ -130,9 +150,15 @@
           </UInput>
         </div>
         <div class="w-4/12">
-          <UInput v-model="newItem.description" required placeholder="Beschreibung" />
+          <UInputMenu
+            v-model="newItem.description"
+            v-model:query="descriptionQuery"
+            :options="descriptionSuggestions"
+            placeholder="Beschreibung"
+            required
+          />
         </div>
-        <div class="w-1/12">
+        <div class="w-1/12 ml-auto flex justify-end items-center">
           <UButton type="submit" icon="i-heroicons-plus" />
         </div>
       </form>
@@ -142,6 +168,7 @@
 
 <script setup lang="ts">
 import dayjs from 'dayjs';
+import { onClickOutside } from '@vueuse/core';
 
 const route = useRoute();
 const db = await useDb();
@@ -163,34 +190,51 @@ const months = [
 const selectedMonth = ref(0);
 const selectedYear = ref(2024);
 
-const selectedEntryId = ref<number>();
-const selectedEntry = computed({
-  get: () => allEntries.value?.find((x) => x.id === selectedEntryId.value),
-  set: (value) => {
-    if (value) {
-      selectedEntryId.value = value.id;
-    } else {
-      selectedEntryId.value = undefined;
-    }
-  },
-});
+const selectedEntry = reactive<{
+  id?: number;
+  date?: number;
+  amount?: number;
+  description?: string;
+}>({});
+function selectEntry(entry?: Entry) {
+  if (!entry) {
+    selectedEntry.id = undefined;
+    selectedEntry.date = undefined;
+    selectedEntry.amount = undefined;
+    selectedEntry.description = undefined;
+    return;
+  }
 
-watch([selectedMonth, selectedYear], () => {
-  selectedEntry.value = undefined;
+  if (selectedEntry.id === entry.id) {
+    return;
+  }
+
+  selectedEntry.id = entry.id;
+  selectedEntry.date = dayjs(entry.date).date();
+  selectedEntry.amount = entry.amount;
+  selectedEntry.description = entry.description;
+}
+
+const lastDay = computed(() => entries.value?.reduce((acc, entry) => Math.max(acc, dayjs(entry.date).date()), 1) ?? 1);
+
+watch(selectedMonth, () => {
+  newItem.day = lastDay.value;
 });
 
 const monthTabs = computed(() => months.map((month, i) => ({ label: month, value: i })));
 
 const bookId = parseInt(route.params.bookId as string);
 const book = await db.books.get(bookId);
-const { data: allEntries, refresh: refreshEntires } = await useAsyncData(() => db.entries.where({ bookId }).toArray(), {
-  watch: [selectedMonth, selectedYear],
-});
+const { data: allEntries, refresh: refreshEntires } = await useAsyncData(() => db.entries.where({ bookId }).toArray());
 
-const entries = computed(() => allEntries.value?.filter((x) => dayjs(x.date).month() === selectedMonth.value));
+const entries = computed(() =>
+  allEntries.value
+    ?.filter((x) => dayjs(x.date).month() === selectedMonth.value && dayjs(x.date).year() === selectedYear.value)
+    .toSorted((a, b) => (dayjs(a.date).isBefore(b.date) ? -1 : 1)),
+);
 
 const newItem = reactive({
-  day: 1,
+  day: lastDay.value,
   amount: 0,
   description: '',
 });
@@ -206,7 +250,7 @@ async function addEntry() {
     bookId,
     type: 'expense',
   });
-  newItem.day = 1;
+  newItem.day = lastDay.value;
   newItem.amount = 0;
   newItem.description = '';
   await refreshEntires();
@@ -234,5 +278,42 @@ function formatDate(date: Date) {
 
 function print() {
   window.print();
+}
+
+const descriptionQuery = ref('');
+const descriptionSuggestions = computed(() => {
+  const descriptions = allEntries.value?.map((x) => x.description) ?? [];
+  descriptions.push(descriptionQuery.value);
+  return Array.from(new Set(descriptions));
+});
+
+const entryRef = ref<HTMLElement>();
+onClickOutside(entryRef, async () => {
+  await saveEntry();
+  selectEntry(undefined);
+  await refreshEntires();
+});
+
+async function saveEntry() {
+  const entry = entries.value!.find((x) => x.id === selectedEntry.id);
+  if (!entry) {
+    return;
+  }
+  console.log('saveEntry', entry, selectedEntry);
+  await db.entries.update(entry.id!, {
+    ...entry,
+    date: new Date(selectedYear.value, selectedMonth.value, selectedEntry.date!),
+    amount: selectedEntry.amount!,
+    description: selectedEntry.description!,
+  });
+}
+
+async function deleteEntry(entry: Entry) {
+  if (!confirm('Eintrag wirklich löschen?')) {
+    return;
+  }
+
+  await db.entries.delete(entry.id!);
+  await refreshEntires();
 }
 </script>

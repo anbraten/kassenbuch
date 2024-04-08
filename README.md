@@ -1,15 +1,15 @@
 # Kassenbuch
 
 ## Todo
-- [ ] Add a book
-- [x] Add element to book
-- [x] Calculate sum of book
+- [x] Create a new book
+- [x] Add entry to book
+- [x] Calculate start and end sum of book
 - [ ] Add invoice pdf / image
-- [ ] Sort book entries by date
+- [x] Sort book entries by date
 - [x] print
-- [ ] import / export db
+- [ ] import / export book
 - [ ] add tags to book entries
 - [ ] selection of year
 - [x] selection of month
 - [ ] add new year
-- [ ] suggest description inputs
+- [x] suggest description inputs
