@@ -8,6 +8,9 @@ on:
     branches:
       - main
 
+env:
+  REPO_NAME: kassenbuch
+
 jobs:
   build:
     name: Build
@@ -22,6 +25,8 @@ jobs:
           version: 8
           run_install: true
       - run: pnpm build --preset github_pages
+        env:
+          NUXT_APP_BASE_URL: /${{ env.REPO_NAME }}/
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
