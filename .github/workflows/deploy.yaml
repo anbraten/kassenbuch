@@ -21,11 +21,11 @@ jobs:
         with:
           version: 8
           run_install: true
-      - run: pnpm build
+      - run: pnpm build --preset github_pages
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: .output/public
+          path: ./.output/public
 
   deploy:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
