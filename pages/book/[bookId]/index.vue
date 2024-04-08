@@ -289,7 +289,7 @@ const descriptionQuery = ref('');
 const descriptionSuggestions = computed(() => {
   const descriptions = allEntries.value?.map((x) => x.description) ?? [];
   descriptions.push(descriptionQuery.value);
-  return Array.from(new Set(descriptions));
+  return Array.from(new Set(descriptions)).filter((x) => x !== '');
 });
 
 const entryRef = ref<HTMLElement>();
