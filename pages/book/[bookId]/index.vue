@@ -44,7 +44,7 @@
         :data-id="entry.id"
         :ref="(el) => selectedEntry?.id === entry.id && (entryRef = el as HTMLElement)"
         @click="selectEntry(entry)"
-        @submit.prevent="saveEntry"
+        @submit.prevent="submitSaveEntry"
       >
         <div class="w-1/12 p-2 flex items-center gap-2">
           <!-- <div class="print:hidden flex items-center cursor-grab handle">
@@ -67,6 +67,7 @@
             class="w-full print:hidden"
             required
             placeholder="Tag"
+            autofocus
           >
             <template #trailing>
               <span class="text-gray-500 dark:text-gray-400"
@@ -94,6 +95,7 @@
             v-model="selectedEntry.amount"
             type="number"
             class="w-full print:hidden"
+            step="0.01"
             required
             placeholder="Betrag"
           >
@@ -127,6 +129,7 @@
             color="red"
             @click="deleteEntry(entry)"
           />
+          <UButton type="submit" class="hidden" />
         </div>
       </form>
 
@@ -140,7 +143,7 @@
         </div>
 
         <div class="w-2/12">
-          <UInput v-model="newItem.day" type="number" required placeholder="Tag">
+          <UInput v-model="newItem.day" type="number" required placeholder="Tag" autofocus>
             <template #trailing>
               <span class="text-gray-500 dark:text-gray-400"
                 >.{{ (selectedMonth + 1).toString().padStart(2, '0') }}.{{ selectedYear }}</span
@@ -149,7 +152,7 @@
           </UInput>
         </div>
         <div class="w-2/12">
-          <UInput v-model="newItem.amount" type="number" required placeholder="Betrag">
+          <UInput v-model="newItem.amount" type="number" required placeholder="Betrag" step="0.01">
             <template #trailing>
               <span class="text-gray-500 dark:text-gray-400">€</span>
             </template>
@@ -294,23 +297,31 @@ const descriptionSuggestions = computed(() => {
 
 const entryRef = ref<HTMLElement>();
 onClickOutside(entryRef, async () => {
+  const changes = selectedEntry.id !== selectedEntry.id;
+  if (changes && !confirm('Änderungen verwerfen?')) {
+    return;
+  }
   await saveEntry();
   selectEntry(undefined);
-  await refreshEntires();
 });
+
+async function submitSaveEntry() {
+  await saveEntry();
+  selectEntry(undefined);
+}
 
 async function saveEntry() {
   const entry = entries.value!.find((x) => x.id === selectedEntry.id);
   if (!entry) {
     return;
   }
-  console.log('saveEntry', entry, selectedEntry);
   await db.entries.update(entry.id!, {
     ...entry,
     date: new Date(selectedYear.value, selectedMonth.value, selectedEntry.date!),
     amount: selectedEntry.amount!,
     description: selectedEntry.description!,
   });
+  await refreshEntires();
 }
 
 async function deleteEntry(entry: Entry) {
