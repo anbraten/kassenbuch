@@ -15,8 +15,9 @@
         </div>
       </div>
 
-      <div class="flex ml-auto items-start print:hidden">
+      <div class="flex ml-auto items-start print:hidden gap-2">
         <UButton icon="i-heroicons-printer" @click="print" />
+        <UButton icon="i-heroicons-adjustments-vertical-solid" :to="`/book/${book.id}/settings`" />
       </div>
     </div>
 

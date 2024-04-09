@@ -1,17 +1,18 @@
 # Kassenbuch
 
 ## Todo
-- [x] Create a new book
-- [x] Add entry to book
-- [x] Calculate start and end sum of book
-- [x] Sort book entries by date
-- [x] print
-- [ ] import / export book
-- [ ] add tags to book entries
-- [ ] selection of year
+- [x] create new book
+- [x] add entry to book
+- [x] calculate start and end sum of book
+- [x] sort book entries by date
+- [x] print book month
+- [x] import / export book
+- [x] delete book
 - [x] selection of month
-- [ ] add new year
 - [x] suggest description inputs
-- [ ] support save by enter when editing existing entry
-- [ ] Add invoice pdf / image
+- [x] support save by enter when editing existing entry
+- [ ] add tags to book entries
+- [ ] add new year
+- [ ] selection of year
+- [ ] add invoice pdf / image
 - [ ] fix flickering when selecting entry when already editing

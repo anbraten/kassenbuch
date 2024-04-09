@@ -26,11 +26,11 @@ const links = computed(() => [
     icon: 'i-heroicons-book-open',
     to: '/',
   },
-  {
-    label: 'Neues Kassenbuch',
-    icon: 'i-heroicons-plus',
-    to: '/book/create',
-  },
+  // {
+  //   label: 'Neues Kassenbuch',
+  //   icon: 'i-heroicons-plus',
+  //   to: '/book/create',
+  // },
   {
     label: '',
     icon: colorMode.value === 'dark' ? 'i-heroicons-moon-20-solid' : 'i-heroicons-sun-20-solid',
