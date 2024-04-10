@@ -1,7 +1,7 @@
 <template>
   <div class="flex flex-col">
     <canvas ref="captureCanvas" class="hidden" />
-    <video ref="captureVideo" autoplay class="rounded" />
+    <video ref="captureVideo" autoplay class="rounded aspect-video" />
     <UButton icon="i-heroicons-camera" class="mx-auto mt-2" @click="captureImage" />
   </div>
 </template>

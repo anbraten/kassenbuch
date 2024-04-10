@@ -5,35 +5,49 @@
       <h1 class="text-2xl">{{ book.name }} - Belegsammler</h1>
     </div>
 
-    <div v-if="!image" class="w-full max-w-96 mx-auto">
-      <ImageCapture :capture="capture" @update:capture="capture = false" @file="saveFile" />
-    </div>
-    <div v-else>
-      <form @submit.prevent="saveEntry" class="flex flex-col gap-2 max-w-96 mx-auto items-start">
-        <img :src="imageData" class="w-full rounded-md" />
+    <form @submit.prevent="saveEntry" class="flex flex-col gap-2 max-w-96 mx-auto items-start">
+      <ImageCapture v-if="!image" :capture="capture" @update:capture="capture = false" @file="saveFile" />
+      <template v-else>
+        <img :src="imageData" class="w-full rounded-md aspect-video" />
+        <UButton v-if="image" icon="i-heroicons-arrow-uturn-left" class="ml-auto" @click="resetForm" />
+      </template>
 
-        <UButton icon="i-heroicons-arrow-uturn-left" class="ml-auto" @click="resetForm" />
+      <UInput
+        v-model="newEntry.date"
+        type="date"
+        required
+        class="w-full"
+        placeholder="Tag"
+        :disabled="!image"
+        autofocus
+      />
 
-        <UInput v-model="newEntry.date" type="date" required class="w-full" placeholder="Tag" autofocus />
+      <UInput
+        v-model="newEntry.amount"
+        type="number"
+        required
+        class="w-full"
+        placeholder="Betrag"
+        :disabled="!image"
+        step="0.01"
+      >
+        <template #trailing>
+          <span class="text-gray-500 dark:text-gray-400">€</span>
+        </template>
+      </UInput>
 
-        <UInput v-model="newEntry.amount" type="number" required class="w-full" placeholder="Betrag" step="0.01">
-          <template #trailing>
-            <span class="text-gray-500 dark:text-gray-400">€</span>
-          </template>
-        </UInput>
+      <UInputMenu
+        v-model="newEntry.description"
+        v-model:query="descriptionQuery"
+        :options="descriptionSuggestions"
+        placeholder="Beschreibung"
+        class="w-full"
+        required
+        :disabled="!image"
+      />
 
-        <UInputMenu
-          v-model="newEntry.description"
-          v-model:query="descriptionQuery"
-          :options="descriptionSuggestions"
-          placeholder="Beschreibung"
-          class="w-full"
-          required
-        />
-
-        <UButton type="submit" class="mx-auto mt-2">Eintrag speichern</UButton>
-      </form>
-    </div>
+      <UButton type="submit" class="mx-auto" :disabled="!image">Eintrag speichern</UButton>
+    </form>
   </div>
 </template>
 
