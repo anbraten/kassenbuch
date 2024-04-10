@@ -1,11 +1,9 @@
 <template>
-  <UModal :model-value="capture" @update:model-value="capture = false">
-    <div class="p-4 flex flex-col">
-      <canvas ref="captureCanvas" class="hidden" />
-      <video ref="captureVideo" autoplay class="rounded" />
-      <UButton icon="i-heroicons-camera" class="mx-auto mt-2" @click="captureImage" />
-    </div>
-  </UModal>
+  <div class="flex flex-col">
+    <canvas ref="captureCanvas" class="hidden" />
+    <video ref="captureVideo" autoplay class="rounded" />
+    <UButton icon="i-heroicons-camera" class="mx-auto mt-2" @click="captureImage" />
+  </div>
 </template>
 
 <script setup lang="ts">
@@ -33,15 +31,19 @@ async function startCapture() {
   });
 }
 
-watch(capture, (value) => {
-  if (value) {
-    startCapture();
-  } else {
-    captureStream.value?.getTracks().forEach((track) => {
-      track.stop();
-    });
-  }
-});
+watch(
+  capture,
+  (value) => {
+    if (value) {
+      startCapture();
+    } else {
+      captureStream.value?.getTracks().forEach((track) => {
+        track.stop();
+      });
+    }
+  },
+  { immediate: true },
+);
 
 async function captureImage() {
   if (!captureVideo.value) {
@@ -71,6 +73,16 @@ async function captureImage() {
   const file = new File([blob], 'capture.png', { type: 'image/png' });
   emit('file', file);
 
+  captureStream.value?.getTracks().forEach((track) => {
+    track.stop();
+  });
+
   capture.value = false;
 }
+
+onBeforeUnmount(() => {
+  captureStream.value?.getTracks().forEach((track) => {
+    track.stop();
+  });
+});
 </script>

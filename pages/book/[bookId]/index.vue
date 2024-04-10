@@ -18,6 +18,7 @@
       <div class="flex ml-auto items-start print:hidden gap-2">
         <UButton icon="i-heroicons-printer" @click="print" />
         <UButton icon="i-heroicons-adjustments-vertical-solid" :to="`/book/${book.id}/settings`" />
+        <UButton icon="i-heroicons-rocket-launch-solid" :to="`/book/${book.id}/rocket`" />
       </div>
     </div>
 
@@ -27,14 +28,14 @@
       <div class="flex gap-2 w-full border-b-2 border-stone-200 dark:border-gray-800">
         <div class="w-1/12 p-2">lfd. Nr.</div>
         <div class="w-2/12 p-2">Datum</div>
-        <div class="w-2/12 p-2 flex flex-col">
+        <div class="w-3/12 p-2 flex flex-col">
           <span class="mx-auto">Betrag</span>
           <div class="flex gap-2 justify-between">
             <span class="text-green-500">Einnahmen</span>
             <span class="text-red-500">Ausgaben</span>
           </div>
         </div>
-        <div class="w-4/12 p-2">Beschreibung</div>
+        <div class="w-5/12 p-2">Beschreibung</div>
         <div class="w-1/12 p-2" />
       </div>
 
@@ -78,7 +79,7 @@
           </UInput>
         </div>
         <div
-          class="flex items-center w-2/12"
+          class="flex items-center w-3/12"
           :class="{
             'text-red-500 justify-end': entry.amount < 0,
             'text-green-500': entry.amount >= 0,
@@ -105,7 +106,7 @@
             </template>
           </UInput>
         </div>
-        <div class="w-4/12 flex items-center">
+        <div class="w-5/12 flex items-center">
           <span
             class="p-2 print:block"
             :class="{
@@ -123,25 +124,23 @@
             placeholder="Beschreibung"
           />
         </div>
-        <div class="flex items-center ml-auto w-2/12 print:hidden justify-end gap-2">
+        <div class="flex items-center ml-auto w-1/12 print:hidden justify-end gap-2">
           <template v-if="selectedEntry.id === entry.id">
-            <!-- <UInput type="file" placeholder="Beleg" @change="uploadEntryAttachment(entry)" capture="environment" /> -->
-            <UButton icon="i-heroicons-document-arrow-up" @click="saveEntryAttachment(entry)" />
+            <UButton type="submit" class="hidden" />
+            <!-- <UButton icon="i-heroicons-document-arrow-up" @click="uploadEntryAttachment(entry)" />
+            <UButton icon="i-heroicons-camera" @click="captureAttachmentFor = entry" />
             <UButton
               v-if="entry.attachmentUrl"
               icon="i-heroicons-document-arrow-up"
               color="red"
               @click="deleteEntryAttachment(entry)"
             />
-            <UButton icon="i-heroicons-camera" @click="captureAttachmentFor = entry" />
-            <UButton icon="i-heroicons-trash" color="red" @click="deleteEntry(entry)" />
-            <UButton type="submit" class="hidden" />
+            <UButton icon="i-heroicons-trash" color="red" @click="deleteEntry(entry)" /> -->
           </template>
-          <UButton
-            v-else-if="entry.attachmentUrl"
-            icon="i-heroicons-document"
-            @click.stop="loadEntryAttachment(entry)"
-          />
+          <UButton v-if="entry.attachmentUrl" icon="i-heroicons-document" @click.stop="loadEntryAttachment(entry)" />
+          <UDropdown :items="getEditEntryItems(entry)">
+            <UButton color="gray" variant="ghost" icon="i-heroicons-ellipsis-horizontal-20-solid" />
+          </UDropdown>
         </div>
       </form>
 
@@ -163,14 +162,14 @@
             </template>
           </UInput>
         </div>
-        <div class="w-2/12">
+        <div class="w-3/12">
           <UInput v-model="newItem.amount" type="number" required placeholder="Betrag" step="0.01">
             <template #trailing>
               <span class="text-gray-500 dark:text-gray-400">€</span>
             </template>
           </UInput>
         </div>
-        <div class="w-4/12">
+        <div class="w-6/12">
           <UInputMenu
             v-model="newItem.description"
             v-model:query="descriptionQuery"
@@ -191,11 +190,13 @@
       </div>
     </UModal>
 
-    <ImageCapture
-      :capture="!!captureAttachmentFor"
-      @update:capture="captureAttachmentFor = undefined"
-      @file="(file) => saveEntryAttachment(captureAttachmentFor!, file)"
-    />
+    <UModal :model-value="!!captureAttachmentFor" @update:model-value="captureAttachmentFor = undefined">
+      <ImageCapture
+        :capture="!!captureAttachmentFor"
+        @update:capture="captureAttachmentFor = undefined"
+        @file="(file) => saveEntryAttachment(captureAttachmentFor!, file)"
+      />
+    </UModal>
   </div>
 </template>
 
@@ -358,28 +359,30 @@ async function deleteEntry(entry: Entry) {
   await refreshEntires();
 }
 
-async function saveEntryAttachment(entry: Entry, _file?: File) {
-  if (!book) {
-    throw new Error('No book loaded');
-  }
+async function uploadEntryAttachment(entry: Entry) {
+  const file = await new Promise<File | undefined>(async (resolve) => {
+    const { open, onChange } = useFileDialog({
+      accept: 'image/*',
+      multiple: false,
+    });
 
-  const file =
-    _file ||
-    (await new Promise<File | undefined>(async (resolve) => {
-      const { open, onChange } = useFileDialog({
-        accept: 'image/*',
-        multiple: false,
-      });
+    onChange((e) => {
+      resolve(e?.item(0) ?? undefined);
+    });
 
-      onChange((e) => {
-        resolve(e?.item(0) ?? undefined);
-      });
-
-      open();
-    }));
+    open();
+  });
 
   if (!file) {
     return;
+  }
+
+  await saveEntryAttachment(entry, file);
+}
+
+async function saveEntryAttachment(entry: Entry, file: File) {
+  if (!book) {
+    throw new Error('No book loaded');
   }
 
   const fileName = `attachment-${book.id}-${entry.id}`;
@@ -440,5 +443,34 @@ async function loadEntryAttachment(entry: Entry) {
       resolve();
     };
   });
+}
+
+function getEditEntryItems(entry: Entry) {
+  return [
+    [
+      {
+        label: 'Beleg hochladen',
+        icon: 'i-heroicons-document-arrow-up',
+        click: () => uploadEntryAttachment(entry),
+      },
+      {
+        label: 'Beleg aufnehmen',
+        icon: 'i-heroicons-camera',
+        click: () => (captureAttachmentFor.value = entry),
+      },
+      entry.attachmentUrl && {
+        label: 'Beleg löschen',
+        icon: 'i-heroicons-trash-20-solid',
+        click: () => deleteEntryAttachment(entry),
+      },
+    ].filter(Boolean),
+    [
+      {
+        label: 'Eintrag löschen',
+        icon: 'i-heroicons-trash-20-solid',
+        click: () => deleteEntry(entry),
+      },
+    ],
+  ];
 }
 </script>
