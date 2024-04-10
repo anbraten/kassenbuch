@@ -123,14 +123,25 @@
             placeholder="Beschreibung"
           />
         </div>
-        <div class="flex items-center ml-auto w-1/12 print:hidden justify-end">
+        <div class="flex items-center ml-auto w-2/12 print:hidden justify-end gap-2">
+          <template v-if="selectedEntry.id === entry.id">
+            <!-- <UInput type="file" placeholder="Beleg" @change="uploadEntryAttachment(entry)" capture="environment" /> -->
+            <UButton icon="i-heroicons-document-arrow-up" @click="saveEntryAttachment(entry)" />
+            <UButton
+              v-if="entry.attachmentUrl"
+              icon="i-heroicons-document-arrow-up"
+              color="red"
+              @click="deleteEntryAttachment(entry)"
+            />
+            <UButton icon="i-heroicons-camera" @click="captureAttachmentFor = entry" />
+            <UButton icon="i-heroicons-trash" color="red" @click="deleteEntry(entry)" />
+            <UButton type="submit" class="hidden" />
+          </template>
           <UButton
-            v-if="selectedEntry.id === entry.id"
-            icon="i-heroicons-trash"
-            color="red"
-            @click="deleteEntry(entry)"
+            v-else-if="entry.attachmentUrl"
+            icon="i-heroicons-document"
+            @click.stop="loadEntryAttachment(entry)"
           />
-          <UButton type="submit" class="hidden" />
         </div>
       </form>
 
@@ -173,12 +184,24 @@
         </div>
       </form>
     </div>
+
+    <UModal :model-value="!!entryAttachmentData" @update:model-value="entryAttachmentData = undefined">
+      <div class="p-4">
+        <img :src="entryAttachmentData" class="w-full h-auto rounded-md" />
+      </div>
+    </UModal>
+
+    <ImageCapture
+      :capture="!!captureAttachmentFor"
+      @update:capture="captureAttachmentFor = undefined"
+      @file="(file) => saveEntryAttachment(captureAttachmentFor!, file)"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import dayjs from 'dayjs';
-import { onClickOutside } from '@vueuse/core';
+import { onClickOutside, useFileDialog } from '@vueuse/core';
 
 const route = useRoute();
 const db = await useDb();
@@ -330,7 +353,92 @@ async function deleteEntry(entry: Entry) {
     return;
   }
 
+  await deleteEntryAttachment(entry);
   await db.entries.delete(entry.id!);
   await refreshEntires();
+}
+
+async function saveEntryAttachment(entry: Entry, _file?: File) {
+  if (!book) {
+    throw new Error('No book loaded');
+  }
+
+  const file =
+    _file ||
+    (await new Promise<File | undefined>(async (resolve) => {
+      const { open, onChange } = useFileDialog({
+        accept: 'image/*',
+        multiple: false,
+      });
+
+      onChange((e) => {
+        resolve(e?.item(0) ?? undefined);
+      });
+
+      open();
+    }));
+
+  if (!file) {
+    return;
+  }
+
+  const fileName = `attachment-${book.id}-${entry.id}`;
+
+  const opfsRoot = await navigator.storage.getDirectory();
+  const fileHandle = await opfsRoot.getFileHandle(fileName, {
+    create: true,
+  });
+
+  const writable = await fileHandle.createWritable();
+  await writable.write(file);
+  await writable.close();
+
+  await db.entries.update(entry.id!, {
+    ...entry,
+    attachmentUrl: fileName,
+  });
+
+  await refreshEntires();
+
+  await loadEntryAttachment(entry);
+}
+
+const captureAttachmentFor = ref<Entry>();
+
+async function deleteEntryAttachment(entry: Entry) {
+  if (!entry.attachmentUrl) {
+    return;
+  }
+
+  const opfsRoot = await navigator.storage.getDirectory();
+  const fileHandle = await opfsRoot.getFileHandle(entry.attachmentUrl);
+  await fileHandle.remove();
+
+  await db.entries.update(entry.id!, {
+    ...entry,
+    attachmentUrl: undefined,
+  });
+
+  await refreshEntires();
+}
+
+const entryAttachmentData = ref<string>();
+async function loadEntryAttachment(entry: Entry) {
+  const opfsRoot = await navigator.storage.getDirectory();
+
+  if (!entry.attachmentUrl) {
+    return undefined;
+  }
+
+  const fileHandle = await opfsRoot.getFileHandle(entry.attachmentUrl);
+  const reader = new FileReader();
+
+  reader.readAsDataURL(await fileHandle.getFile());
+  return new Promise<void>((resolve) => {
+    reader.onload = () => {
+      entryAttachmentData.value = reader.result as string;
+      resolve();
+    };
+  });
 }
 </script>

@@ -11,8 +11,10 @@
 - [x] selection of month
 - [x] suggest description inputs
 - [x] support save by enter when editing existing entry
+- [x] add invoice pdf / image
+- [x] capture invoice image from camera
+- [ ] import & export invoice files
 - [ ] add tags to book entries
 - [ ] add new year
 - [ ] selection of year
-- [ ] add invoice pdf / image
 - [ ] fix flickering when selecting entry when already editing

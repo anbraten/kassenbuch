@@ -12,6 +12,7 @@ export type Entry = {
   date: Date;
   amount: number;
   description: string;
+  attachmentUrl?: string;
 };
 
 class Database extends Dexie {
@@ -28,6 +29,10 @@ class Database extends Dexie {
     this.version(1).stores({
       books: '++id, name, startAmount',
       entries: '++id, bookId, date, amount, description',
+    });
+
+    this.version(2).stores({
+      entries: '++id, bookId, date, amount, description, attachmentUrl',
     });
   }
 }
