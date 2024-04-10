@@ -5,7 +5,7 @@
       <h1 class="text-2xl">{{ book.name }} - Belegsammler</h1>
     </div>
 
-    <div v-if="!image" class="w-2/3 max-w-96 mx-auto">
+    <div v-if="!image" class="w-full max-w-96 mx-auto">
       <ImageCapture :capture="capture" @update:capture="capture = false" @file="saveFile" />
     </div>
     <div v-else>
