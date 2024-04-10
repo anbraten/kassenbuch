@@ -21,7 +21,9 @@ const captureStream = ref<MediaStream>();
 
 async function startCapture() {
   nextTick(async () => {
-    captureStream.value = await navigator.mediaDevices.getUserMedia({ video: true });
+    captureStream.value = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: 'environment' },
+    });
 
     if (!captureVideo.value) {
       throw new Error('No video element');
