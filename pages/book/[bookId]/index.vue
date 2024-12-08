@@ -25,37 +25,37 @@
     <UTabs :items="monthTabs" v-model="selectedMonth" class="w-full print:hidden" />
 
     <div class="flex flex-col w-full">
-      <div class="flex gap-2 w-full border-b-2 border-stone-200 dark:border-gray-800">
-        <div class="w-1/12 py-2 print:border-r">lfd. Nr.</div>
-        <div class="w-1/12 py-2 print:border-r">Datum</div>
-        <div class="w-3/12 py-2 flex flex-col print:border-r">
+      <div class="flex w-full border-b-2 border-stone-200 dark:border-gray-800">
+        <div class="w-1/12 p-2 print:border-r">lfd. Nr.</div>
+        <div class="w-1/12 p-2 print:border-r">Datum</div>
+        <div class="w-3/12 p-2 flex flex-col print:border-r">
           <span class="mx-auto">Betrag</span>
           <div class="flex gap-2 justify-between">
             <span class="text-green-500">Einnahmen</span>
             <span class="text-red-500">Ausgaben</span>
           </div>
         </div>
-        <div class="w-1/12 py-2 hidden print:flex print:border-r">Gegen-Konto</div>
-        <div class="w-5/12 py-2">Beschreibung</div>
-        <div class="w-1/12 py-2 print:hidden" />
+        <div class="w-1/12 p-2 hidden print:flex print:border-r">Gegen-Konto</div>
+        <div class="w-5/12 p-2">Beschreibung</div>
+        <div class="w-1/12 p-2 print:hidden" />
       </div>
 
       <form
         v-for="(entry, i) in entries"
         :key="entry.id"
-        class="flex gap-2 w-full border-b dark:border-gray-800"
+        class="flex w-full border-b dark:border-gray-800"
         :data-id="entry.id"
         :ref="(el) => selectedEntry?.id === entry.id && (entryRef = el as HTMLElement)"
         @click="selectEntry(entry)"
         @submit.prevent="submitSaveEntry"
       >
-        <div class="w-1/12 py-2 print:py-0 flex items-center gap-2">
+        <div class="w-1/12 p-2 print:py-0 flex items-center gap-2 print:border-r">
           <!-- <div class="print:hidden flex items-center cursor-grab handle">
             <UIcon name="i-ic-baseline-drag-indicator" />
           </div> -->
           <span>{{ i + 1 }}</span>
         </div>
-        <div class="w-1/12 py-2 print:py-0 flex items-center print:border-r">
+        <div class="w-1/12 p-2 print:py-0 flex items-center print:border-r">
           <span
             class="print:block"
             :class="{
@@ -80,7 +80,7 @@
           </UInput>
         </div>
         <div
-          class="w-3/12 py-2 print:py-0 flex items-center print:border-r"
+          class="w-3/12 p-2 print:py-0 flex items-center print:border-r"
           :class="{
             'text-red-500 justify-end': entry.amount < 0,
             'text-green-500': entry.amount >= 0,
@@ -107,8 +107,8 @@
             </template>
           </UInput>
         </div>
-        <div class="w-1/12 py-2 print:py-0 hidden print:flex items-center print:border-r" />
-        <div class="w-5/12 py-2 print:py-0 flex items-center">
+        <div class="w-1/12 p-2 print:py-0 hidden print:flex items-center print:border-r" />
+        <div class="w-5/12 p-2 print:py-0 flex items-center">
           <span
             class="print:block"
             :class="{
@@ -126,7 +126,7 @@
             placeholder="Beschreibung"
           />
         </div>
-        <div class="w-1/12 py-2 print:py-0 flex items-center ml-auto print:hidden justify-end gap-2">
+        <div class="w-1/12 p-2 print:p-0 flex items-center ml-auto print:hidden justify-end gap-2">
           <template v-if="selectedEntry.id === entry.id">
             <UButton type="submit" class="hidden" />
             <!-- <UButton icon="i-heroicons-document-arrow-up" @click="uploadEntryAttachment(entry)" />
@@ -155,7 +155,7 @@
           <span>{{ (entries?.length ?? 0) + 1 }}</span>
         </div>
 
-        <div class="w-2/12">
+        <div class="w-1/12">
           <UInput v-model="newItem.day" type="number" required placeholder="Tag" autofocus>
             <template #trailing>
               <span class="text-gray-500 dark:text-gray-400"
