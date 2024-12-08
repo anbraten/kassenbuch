@@ -8,7 +8,7 @@
     />
 
     <main
-      class="flex p-4 m-2 bg-white shadow dark:shadow-none lg:p-6 dark:bg-neutral-950 w-full rounded-xl dark:rounded-none dark:m-0 print:p-0 print:w-full print:shadow-none print:bg-transparent print:rounded-none"
+      class="flex p-4 m-2 bg-white shadow dark:shadow-none lg:p-6 dark:bg-neutral-950 w-[calc(100%-2*.5rem)] rounded-xl dark:rounded-none dark:m-0 print:p-0 print:w-full print:shadow-none print:bg-transparent print:rounded-none"
     >
       <slot />
     </main>
