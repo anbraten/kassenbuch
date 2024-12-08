@@ -35,7 +35,7 @@
             <span class="text-red-500">Ausgaben</span>
           </div>
         </div>
-        <div class="w-1/12 p-2 hidden print:flex print:border-r">Gegen-Konto</div>
+        <div class="w-2/12 p-2 hidden print:flex print:border-r">Gegen-Konto</div>
         <div class="w-5/12 p-2">Beschreibung</div>
         <div class="w-1/12 p-2 print:hidden" />
       </div>
@@ -107,7 +107,7 @@
             </template>
           </UInput>
         </div>
-        <div class="w-1/12 p-2 print:py-0 hidden print:flex items-center print:border-r" />
+        <div class="w-2/12 p-2 print:py-0 hidden print:flex items-center print:border-r" />
         <div class="w-5/12 p-2 print:py-0 flex items-center">
           <span
             class="print:block"
